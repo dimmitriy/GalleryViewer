@@ -1,15 +1,13 @@
-package com.solution.galleryviewer;
+package com.solution.galleryviewer.gallery;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
-import android.provider.MediaStore;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -22,19 +20,16 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-import com.solution.galleryviewer.adapter.ImagesAdapter;
+import com.solution.galleryviewer.R;
 import com.solution.galleryviewer.extras.Constants;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import com.solution.galleryviewer.fullscreen.FullScreenActivity;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends Activity implements
+public class GalleryActivity extends Activity implements
         AdapterView.OnItemClickListener, GalleryContract.View {
 
     @BindView(R.id.gridImages)
@@ -42,6 +37,7 @@ public class MainActivity extends Activity implements
 
     private ImagesAdapter imagesAdapter;
     private Display display;
+    private List<Bitmap> photos;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -108,7 +104,7 @@ public class MainActivity extends Activity implements
         if (data == null) {
             new GalleryPresenter(this).loadImages();
         } else {
-            final List<Bitmap> photos = (List<Bitmap>) data;
+            photos = (List<Bitmap>) data;
             if (photos.size() == 0) {
                 new GalleryPresenter(this).loadImages();
             }
@@ -131,6 +127,7 @@ public class MainActivity extends Activity implements
 
     @Override
     public void showImages(List<Bitmap> bitmaps) {
+        photos = bitmaps;
         for (Bitmap bitmap : bitmaps) {
             imagesAdapter.addPhoto(bitmap);
             imagesAdapter.notifyDataSetChanged();
@@ -138,42 +135,9 @@ public class MainActivity extends Activity implements
     }
 
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-        int columnIndex;
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = managedQuery( MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                projection, null, null, null);
-        if (cursor != null) {
-            columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToPosition(position);
-            String imagePath = cursor.getString(columnIndex);
-
-            FileInputStream is = null;
-            BufferedInputStream bis = null;
-            try {
-                is = new FileInputStream(new File(imagePath));
-                bis = new BufferedInputStream(is);
-                Bitmap bitmap = BitmapFactory.decodeStream(bis);
-                Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, parent.getWidth(), parent.getHeight(), true);
-                bitmap.recycle();
-                //Display bitmap (scaledBitmap)
-            }
-            catch (Exception e) {
-                //Try to recover
-            }
-            finally {
-                try {
-                    if (bis != null) {
-                        bis.close();
-                    }
-                    if (is != null) {
-                        is.close();
-                    }
-                    cursor.close();
-                } catch (Exception e) {
-
-                }
-            }
-        }
+        Intent intent = new Intent(this, FullScreenActivity.class);
+        intent.putExtra(Constants.POSITION, position);
+        startActivity(intent);
     }
 
 }

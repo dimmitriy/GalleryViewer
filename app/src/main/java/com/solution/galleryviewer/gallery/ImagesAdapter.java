@@ -1,4 +1,4 @@
-package com.solution.galleryviewer.adapter;
+package com.solution.galleryviewer.gallery;
 
 import android.content.Context;
 import android.graphics.Bitmap;

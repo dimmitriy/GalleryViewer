@@ -1,4 +1,4 @@
-package com.solution.galleryviewer;
+package com.solution.galleryviewer.gallery;
 
 import android.graphics.Bitmap;
 
