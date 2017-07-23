@@ -23,19 +23,19 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.solution.galleryviewer.adapter.ImagesAdapter;
-import com.solution.galleryviewer.async.LoadImagesAsyncTask;
-import com.solution.galleryviewer.async.OnLoadedImageListener;
 import com.solution.galleryviewer.extras.Constants;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends Activity implements
-        AdapterView.OnItemClickListener, OnLoadedImageListener {
+        AdapterView.OnItemClickListener, GalleryContract.View {
 
     @BindView(R.id.gridImages)
     GridView gridImages;
@@ -106,22 +106,13 @@ public class MainActivity extends Activity implements
     private void loadImages() {
         final Object data = getLastNonConfigurationInstance();
         if (data == null) {
-            new LoadImagesAsyncTask(this, this).execute();
+            new GalleryPresenter(this).loadImages();
         } else {
-            final Bitmap[] photos = (Bitmap[]) data;
-            if (photos.length == 0) {
-                new LoadImagesAsyncTask(this, this).execute();
+            final List<Bitmap> photos = (List<Bitmap>) data;
+            if (photos.size() == 0) {
+                new GalleryPresenter(this).loadImages();
             }
-            for (Bitmap photo : photos) {
-                addImage(photo);
-            }
-        }
-    }
-
-    private void addImage(Bitmap ... bitmaps) {
-        for (Bitmap bitmap : bitmaps) {
-            imagesAdapter.addPhoto(bitmap);
-            imagesAdapter.notifyDataSetChanged();
+            showImages(photos);
         }
     }
 
@@ -129,19 +120,19 @@ public class MainActivity extends Activity implements
     public Object onRetainNonConfigurationInstance() {
         final GridView grid = gridImages;
         final int count = grid.getChildCount();
-        final Bitmap[] list = new Bitmap[count];
+        final List<Bitmap> list = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             final ImageView v = (ImageView) grid.getChildAt(i);
-            list[i] = ((BitmapDrawable) v.getDrawable()).getBitmap();
+            list.add(((BitmapDrawable) v.getDrawable()).getBitmap());
         }
         return list;
     }
 
     @Override
-    public void onLoadedImage(Bitmap ... images) {
-        for (Bitmap image : images) {
-            imagesAdapter.addPhoto(image);
+    public void showImages(List<Bitmap> bitmaps) {
+        for (Bitmap bitmap : bitmaps) {
+            imagesAdapter.addPhoto(bitmap);
             imagesAdapter.notifyDataSetChanged();
         }
     }
@@ -150,10 +141,7 @@ public class MainActivity extends Activity implements
         int columnIndex;
         String[] projection = {MediaStore.Images.Media.DATA};
         Cursor cursor = managedQuery( MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                null);
+                projection, null, null, null);
         if (cursor != null) {
             columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             cursor.moveToPosition(position);
@@ -182,6 +170,7 @@ public class MainActivity extends Activity implements
                     }
                     cursor.close();
                 } catch (Exception e) {
+
                 }
             }
         }

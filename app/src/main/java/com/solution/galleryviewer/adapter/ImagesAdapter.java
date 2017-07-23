@@ -10,11 +10,11 @@ import java.util.ArrayList;
 
 public class ImagesAdapter extends BaseAdapter {
 
-    private Context mContext;
+    private Context context;
     private ArrayList<Bitmap> photos = new ArrayList<>();
 
     public ImagesAdapter(Context context) {
-        mContext = context;
+        this.context = context;
     }
 
     public void addPhoto(Bitmap photo) {
@@ -36,7 +36,7 @@ public class ImagesAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         final ImageView imageView;
         if (convertView == null) {
-            imageView = new ImageView(mContext);
+            imageView = new ImageView(context);
         } else {
             imageView = (ImageView) convertView;
         }
