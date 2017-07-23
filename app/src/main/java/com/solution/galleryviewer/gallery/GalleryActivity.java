@@ -14,7 +14,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.Display;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -38,19 +37,23 @@ public class GalleryActivity extends Activity implements
     private ImagesAdapter imagesAdapter;
     private Display display;
     private List<Bitmap> photos;
+    private GalleryPresenter presenter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
         display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
         setupViews();
-        setProgressBarIndeterminateVisibility(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        presenter = new GalleryPresenter(this);
         checkPermission();
     }
 
@@ -102,11 +105,11 @@ public class GalleryActivity extends Activity implements
     private void loadImages() {
         final Object data = getLastNonConfigurationInstance();
         if (data == null) {
-            new GalleryPresenter(this).loadImages();
+            presenter.loadImages();
         } else {
             photos = (List<Bitmap>) data;
             if (photos.size() == 0) {
-                new GalleryPresenter(this).loadImages();
+                presenter.loadImages();
             }
             showImages(photos);
         }

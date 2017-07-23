@@ -27,8 +27,7 @@ public class BitmapUtils {
         List<Bitmap> bitmaps = new ArrayList<>();
 
         String[] projection = {MediaStore.Images.Thumbnails._ID};
-        Cursor cursor = activity.managedQuery(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI,
-                projection, null, null, null);
+        Cursor cursor = activity.getContentResolver().query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, projection, null, null, null);
         int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Thumbnails._ID);
         int size = cursor.getCount();
         if (size != 0) {
