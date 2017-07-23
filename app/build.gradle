@@ -27,6 +27,8 @@ dependencies {
     compile "com.android.support:appcompat-v7:$supportVersion"
     compile "com.android.support.constraint:constraint-layout:$constrainsVersion"
     testCompile "junit:junit:$junitVersion"
+    compile "com.jakewharton:butterknife:$butterKnifeVersion"
+    annotationProcessor "com.jakewharton:butterknife-compiler:$butterKnifeVersion"
 }
 
 buildscript {
