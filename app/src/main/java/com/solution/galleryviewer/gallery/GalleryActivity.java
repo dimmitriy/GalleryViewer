@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
@@ -28,7 +29,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class GalleryActivity extends Activity implements
+public class GalleryActivity extends AppCompatActivity implements
         AdapterView.OnItemClickListener, GalleryContract.View {
 
     @BindView(R.id.gridImages)
@@ -116,7 +117,7 @@ public class GalleryActivity extends Activity implements
     }
 
     @Override
-    public Object onRetainNonConfigurationInstance() {
+    public Object onRetainCustomNonConfigurationInstance() {
         final GridView grid = gridImages;
         final int count = grid.getChildCount();
         final List<Bitmap> list = new ArrayList<>();

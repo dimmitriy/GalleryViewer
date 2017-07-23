@@ -12,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import com.solution.galleryviewer.R;
 import com.solution.galleryviewer.extras.Constants;
@@ -20,7 +21,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class FullScreenActivity extends Activity implements FullScreenContract.View, ViewPager.OnPageChangeListener {
+public class FullScreenActivity extends AppCompatActivity implements FullScreenContract.View, ViewPager.OnPageChangeListener {
 
     @BindView(R.id.pager)
     ViewPager pager;
@@ -38,6 +39,7 @@ public class FullScreenActivity extends Activity implements FullScreenContract.V
 
         Intent intent = getIntent();
         position = intent.getIntExtra(Constants.POSITION, 0);
+        pager.setPageTransformer(true, new ZoomOutPageTransformer());
 
         setupViews();
     }
@@ -106,7 +108,7 @@ public class FullScreenActivity extends Activity implements FullScreenContract.V
     }
 
     @Override
-    public Object onRetainNonConfigurationInstance() {
+    public Object onRetainCustomNonConfigurationInstance() {
         final ViewPager grid = pager;
         final int count = grid.getChildCount();
         final List<Bitmap> list = new ArrayList<>();
