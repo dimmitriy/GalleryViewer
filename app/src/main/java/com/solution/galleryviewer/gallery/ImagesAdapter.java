@@ -2,22 +2,23 @@ package com.solution.galleryviewer.gallery;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import java.util.ArrayList;
 
-public class ImagesAdapter extends BaseAdapter {
+class ImagesAdapter extends BaseAdapter {
 
     private Context context;
     private ArrayList<Bitmap> photos = new ArrayList<>();
 
-    public ImagesAdapter(Context context) {
+    ImagesAdapter(Context context) {
         this.context = context;
     }
 
-    public void addPhoto(Bitmap photo) {
+    void addPhoto(Bitmap photo) {
         photos.add(photo);
     }
 
@@ -40,9 +41,9 @@ public class ImagesAdapter extends BaseAdapter {
         } else {
             imageView = (ImageView) convertView;
         }
-        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        imageView.setPadding(8, 8, 8, 8);
-        imageView.setImageBitmap(photos.get(position));
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imageView.setPadding(2, 2, 2, 2);
+        imageView.setImageDrawable(new BitmapDrawable(context.getResources(), photos.get(position)));
         return imageView;
     }
 }

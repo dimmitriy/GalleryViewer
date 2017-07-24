@@ -12,7 +12,7 @@ import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
-public class FullScreenPresenter implements GalleryContract.Presenter {
+public class FullScreenPresenter implements FullScreenContract.Presenter {
 
     private final FullScreenContract.View view;
 

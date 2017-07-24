@@ -1,8 +1,6 @@
 package com.solution.galleryviewer.fullscreen;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -12,8 +10,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ImageView;
+
+import com.solution.galleryviewer.BaseActivity;
 import com.solution.galleryviewer.R;
 import com.solution.galleryviewer.extras.Constants;
 import java.util.ArrayList;
@@ -21,7 +22,8 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class FullScreenActivity extends AppCompatActivity implements FullScreenContract.View, ViewPager.OnPageChangeListener {
+public class FullScreenActivity extends BaseActivity
+        implements FullScreenContract.View, ViewPager.OnPageChangeListener {
 
     @BindView(R.id.pager)
     ViewPager pager;
@@ -37,17 +39,25 @@ public class FullScreenActivity extends AppCompatActivity implements FullScreenC
         setContentView(R.layout.activity_full_screen);
         ButterKnife.bind(this);
 
-        Intent intent = getIntent();
-        position = intent.getIntExtra(Constants.POSITION, 0);
+        position = getIntent().getIntExtra(Constants.POSITION, 0);
         pager.setPageTransformer(true, new ZoomOutPageTransformer());
+    }
 
-        setupViews();
+    @Override
+    protected String getToolbarTitle() {
+        return getResources().getString(R.string.fullscreen_viewer);
+    }
+
+    @Override
+    protected boolean isHasBackButton() {
+        return true;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         presenter = new FullScreenPresenter(this);
+        setupViews();
         checkPermission();
     }
 
@@ -85,6 +95,22 @@ public class FullScreenActivity extends AppCompatActivity implements FullScreenC
                     loadImages();
                 }
                 break;
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 

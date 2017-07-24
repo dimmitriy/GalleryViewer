@@ -17,8 +17,8 @@ public class GalleryPresenter implements GalleryContract.Presenter {
     }
 
     @Override
-    public void loadImages() {
-        List<Bitmap> bitmaps = BitmapUtils.getGalleryBitmaps((Activity)view);
+    public void loadImages(int imageSize) {
+        List<Bitmap> bitmaps = BitmapUtils.getGalleryScaledBitmaps((Activity)view, imageSize);
         Observable.just(bitmaps).subscribe(new Observer<List<Bitmap>>() {
             @Override
             public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {

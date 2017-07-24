@@ -1,10 +1,10 @@
 package com.solution.galleryviewer.gallery;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
@@ -14,12 +14,17 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.solution.galleryviewer.BaseActivity;
 import com.solution.galleryviewer.R;
 import com.solution.galleryviewer.extras.Constants;
 import com.solution.galleryviewer.fullscreen.FullScreenActivity;
@@ -29,32 +34,45 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class GalleryActivity extends AppCompatActivity implements
+public class GalleryActivity extends BaseActivity implements
         AdapterView.OnItemClickListener, GalleryContract.View {
 
     @BindView(R.id.gridImages)
     GridView gridImages;
 
     private ImagesAdapter imagesAdapter;
-    private Display display;
     private List<Bitmap> photos;
     private GalleryPresenter presenter;
+    private int imageSize;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+    }
 
-        display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+    @Override
+    protected String getToolbarTitle() {
+        return getResources().getString(R.string.gallery_viewer);
+    }
 
-        setupViews();
+    @Override
+    protected boolean isHasBackButton() {
+        return false;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         presenter = new GalleryPresenter(this);
+        Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            imageSize =  display.getHeight()/Constants.COUNT_IMAGES_LANDSCAPE;
+        } else {
+            imageSize =  display.getWidth()/Constants.COUNT_IMAGES_PORTRAIT;
+        }
+        setupViews();
         checkPermission();
     }
 
@@ -95,8 +113,30 @@ public class GalleryActivity extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.gallery, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.delete:
+                Toast.makeText(this, "delete image", Toast.LENGTH_SHORT).show();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void setupViews() {
-        gridImages.setNumColumns(Constants.COUNT_IMAGES);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            gridImages.setNumColumns(Constants.COUNT_IMAGES_LANDSCAPE);
+        } else {
+            gridImages.setNumColumns(Constants.COUNT_IMAGES_PORTRAIT);
+        }
         gridImages.setClipToPadding(false);
         gridImages.setOnItemClickListener(this);
         imagesAdapter = new ImagesAdapter(getApplicationContext());
@@ -106,11 +146,11 @@ public class GalleryActivity extends AppCompatActivity implements
     private void loadImages() {
         final Object data = getLastNonConfigurationInstance();
         if (data == null) {
-            presenter.loadImages();
+            presenter.loadImages(imageSize);
         } else {
             photos = (List<Bitmap>) data;
             if (photos.size() == 0) {
-                presenter.loadImages();
+                presenter.loadImages(imageSize);
             }
             showImages(photos);
         }

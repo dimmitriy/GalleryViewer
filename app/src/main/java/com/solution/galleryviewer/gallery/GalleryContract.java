@@ -8,7 +8,7 @@ public interface GalleryContract {
 
     interface Presenter {
 
-        void loadImages();
+        void loadImages(int imageSize);
 
     }
 
