@@ -1,7 +1,6 @@
 package com.solution.galleryviewer.fullscreen;
 
 import android.content.Context;
-import android.graphics.BitmapFactory;
 import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,28 +13,25 @@ import com.solution.galleryviewer.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FullScreenAdapter extends PagerAdapter {
+class FullScreenAdapter extends PagerAdapter {
 
     private final LayoutInflater inflater;
     private final Context context;
-    private final BitmapFactory.Options options;
-    private List<String> photos;
+    private List<String> paths;
 
-    public FullScreenAdapter(Context context) {
+    FullScreenAdapter(Context context) {
         this.context = context;
-        photos = new ArrayList<>();
+        paths = new ArrayList<>();
         inflater = LayoutInflater.from(context);
-        options = new BitmapFactory.Options();
-        options.inSampleSize = 4;
     }
 
-    public void update(List<String> photos){
-        this.photos = photos;
+    void update(List<String> photos){
+        this.paths = photos;
     }
 
     @Override
     public int getCount() {
-        return photos.size();
+        return paths.size();
     }
 
     @Override
@@ -46,11 +42,14 @@ public class FullScreenAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         View view = inflater.inflate(R.layout.fullscreen_page, null);
-        String path = photos.get(position);
+        String path = paths.get(position);
 
         Glide
                 .with(context)
                 .load(path)
+                .centerCrop()
+                .placeholder(R.drawable.placeholder)
+                .centerCrop()
                 .into((ImageView)view);
 
         container.addView(view);

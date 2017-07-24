@@ -1,33 +1,34 @@
 package com.solution.galleryviewer.gallery;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 
-class ImagesAdapter extends BaseAdapter {
+class GalleryAdapter extends BaseAdapter {
 
+    private final int size;
     private Context context;
-    private ArrayList<Bitmap> photos = new ArrayList<>();
+    private ArrayList<String> uris = new ArrayList<>();
 
-    ImagesAdapter(Context context) {
+    GalleryAdapter(Context context, int size) {
         this.context = context;
+        this.size = size;
     }
 
-    void addPhoto(Bitmap photo) {
-        photos.add(photo);
+    void addPhoto(String path) {
+        uris.add(path);
     }
 
     public int getCount() {
-        return photos.size();
+        return uris.size();
     }
 
     public Object getItem(int position) {
-        return photos.get(position);
+        return uris.get(position);
     }
 
     public long getItemId(int position) {
@@ -41,9 +42,14 @@ class ImagesAdapter extends BaseAdapter {
         } else {
             imageView = (ImageView) convertView;
         }
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imageView.setPadding(2, 2, 2, 2);
-        imageView.setImageDrawable(new BitmapDrawable(context.getResources(), photos.get(position)));
+
+        Glide.with(context)
+                .load(uris.get(position))
+                .override(size, size)
+                .centerCrop()
+                .into(imageView);
+
         return imageView;
     }
 }

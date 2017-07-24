@@ -2,8 +2,7 @@ package com.solution.galleryviewer.fullscreen;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -13,7 +12,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.solution.galleryviewer.BaseActivity;
@@ -30,8 +31,11 @@ public class FullScreenActivity extends BaseActivity
     @BindView(R.id.pager)
     ViewPager pager;
 
+    @BindView(R.id.text)
+    TextView text;
+
     private int position;
-    private List<String> photos;
+    private List<String> paths;
     private FullScreenAdapter adapter;
     private FullScreenPresenter presenter;
 
@@ -107,6 +111,10 @@ public class FullScreenActivity extends BaseActivity
             case Constants.CODE_SELECT_FROM_GALLERY:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadImages();
+                } else {
+                    pager.setVisibility(View.GONE);
+                    text.setVisibility(View.VISIBLE);
+                    text.setText(R.string.no_permission);
                 }
                 break;
         }
@@ -123,9 +131,21 @@ public class FullScreenActivity extends BaseActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.delete:
-                String path = photos.get(position);
-                Toast.makeText(this, String.format(getString(R.string.image_deleted), path), Toast.LENGTH_SHORT).show();
-                presenter.delete(path);
+                if (paths.size() == 0){
+                    Toast.makeText(this, getString(R.string.no_image_delete), Toast.LENGTH_SHORT).show();
+                    pager.setVisibility(View.GONE);
+                    text.setVisibility(View.VISIBLE);
+                    text.setText(R.string.no_images);
+                } else {
+                    String path;
+                    if (paths.size() == 1){
+                        path = paths.get(0);
+                    } else {
+                        path = paths.get(position);
+                    }
+                    Toast.makeText(this, String.format(getString(R.string.image_deleted), path), Toast.LENGTH_SHORT).show();
+                    presenter.delete(path);
+                }
                 return true;
             case android.R.id.home:
                 onBackPressed();
@@ -146,11 +166,11 @@ public class FullScreenActivity extends BaseActivity
         if (data == null) {
             presenter.loadImages();
         } else {
-            photos = (List<String>) data;
-            if (photos.size() == 0) {
+            paths = (List<String>) data;
+            if (paths.size() == 0) {
                 presenter.loadImages();
             }
-            showImages(photos);
+            showImages(paths);
         }
     }
 
@@ -158,26 +178,33 @@ public class FullScreenActivity extends BaseActivity
     public Object onRetainCustomNonConfigurationInstance() {
         final ViewPager grid = pager;
         final int count = grid.getChildCount();
-        final List<Bitmap> list = new ArrayList<>();
+        final List<TransitionDrawable> list = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             final ImageView v = (ImageView) grid.getChildAt(i);
-            list.add(((BitmapDrawable) v.getDrawable()).getBitmap());
+            list.add(((TransitionDrawable) v.getDrawable()));
         }
         return list;
     }
 
     @Override
-    public void showImages(List<String> bitmaps) {
-        photos = bitmaps;
-        adapter.update(bitmaps);
-        adapter.notifyDataSetChanged();
-        pager.setCurrentItem(position);
+    public void showImages(List<String> paths) {
+
+        if (paths.size() == 0){
+            onBackPressed();
+        } else {
+            pager.setVisibility(View.VISIBLE);
+            text.setVisibility(View.GONE);
+            this.paths = paths;
+            adapter.update(this.paths);
+            adapter.notifyDataSetChanged();
+            pager.setCurrentItem(position);
+        }
     }
 
     @Override
     public void updateImages(List<String> bitmaps) {
-        photos = bitmaps;
+        paths = bitmaps;
         pager.setAdapter(null);
         adapter.update(bitmaps);
         adapter.notifyDataSetChanged();

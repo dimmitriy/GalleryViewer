@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">GalleryViewer</string>
+    <string name="no_images">No images in gallery</string>
+    <string name="no_permission">No permission to show images</string>
     <string name="gallery_viewer">Gallery Viewer</string>
     <string name="fullscreen_viewer">FullScreen Viewer</string>
     <string name="delete">delete</string>
     <string name="image_deleted">image %s deleted</string>
+    <string name="no_image_delete">No images to delete</string>
 </resources>

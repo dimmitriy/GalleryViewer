@@ -1,10 +1,8 @@
 package com.solution.galleryviewer.gallery;
 
-import android.graphics.Bitmap;
-
 import java.util.List;
 
-public interface GalleryContract {
+interface GalleryContract {
 
     interface Presenter {
 
@@ -14,7 +12,9 @@ public interface GalleryContract {
 
     interface View {
 
-        void showImages(List<Bitmap> bitmaps);
+        void showImages(List<String> paths, int imageSize);
+
+        void showProgress(boolean isShow);
 
     }
 

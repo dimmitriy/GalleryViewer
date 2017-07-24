@@ -6,24 +6,21 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 import com.solution.galleryviewer.BaseActivity;
 import com.solution.galleryviewer.R;
 import com.solution.galleryviewer.extras.Constants;
@@ -37,11 +34,17 @@ import butterknife.ButterKnife;
 public class GalleryActivity extends BaseActivity implements
         AdapterView.OnItemClickListener, GalleryContract.View {
 
-    @BindView(R.id.gridImages)
-    GridView gridImages;
+    @BindView(R.id.grid_images)
+    GridView grid;
 
-    private ImagesAdapter imagesAdapter;
-    private List<Bitmap> photos;
+    @BindView(R.id.progress)
+    ProgressBar progress;
+
+    @BindView(R.id.text)
+    TextView text;
+
+    private GalleryAdapter adapter;
+    private List<String> paths;
     private GalleryPresenter presenter;
     private int imageSize;
 
@@ -68,7 +71,7 @@ public class GalleryActivity extends BaseActivity implements
         presenter = new GalleryPresenter(this);
         Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            imageSize =  display.getHeight()/Constants.COUNT_IMAGES_LANDSCAPE;
+            imageSize =  display.getWidth()/Constants.COUNT_IMAGES_LANDSCAPE;
         } else {
             imageSize =  display.getWidth()/Constants.COUNT_IMAGES_PORTRAIT;
         }
@@ -78,7 +81,7 @@ public class GalleryActivity extends BaseActivity implements
 
     protected void onDestroy() {
         super.onDestroy();
-        final GridView grid = gridImages;
+        final GridView grid = this.grid;
         final int count = grid.getChildCount();
         ImageView v;
         for (int i = 0; i < count; i++) {
@@ -108,6 +111,10 @@ public class GalleryActivity extends BaseActivity implements
             case Constants.CODE_SELECT_FROM_GALLERY:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadImages();
+                } else {
+                    grid.setVisibility(View.GONE);
+                    text.setVisibility(View.VISIBLE);
+                    text.setText(R.string.no_permission);
                 }
                 break;
         }
@@ -115,14 +122,14 @@ public class GalleryActivity extends BaseActivity implements
 
     private void setupViews() {
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            gridImages.setNumColumns(Constants.COUNT_IMAGES_LANDSCAPE);
+            grid.setNumColumns(Constants.COUNT_IMAGES_LANDSCAPE);
         } else {
-            gridImages.setNumColumns(Constants.COUNT_IMAGES_PORTRAIT);
+            grid.setNumColumns(Constants.COUNT_IMAGES_PORTRAIT);
         }
-        gridImages.setClipToPadding(false);
-        gridImages.setOnItemClickListener(this);
-        imagesAdapter = new ImagesAdapter(getApplicationContext());
-        gridImages.setAdapter(imagesAdapter);
+        grid.setClipToPadding(false);
+        grid.setOnItemClickListener(this);
+        adapter = new GalleryAdapter(getApplicationContext(), imageSize);
+        grid.setAdapter(adapter);
     }
 
     private void loadImages() {
@@ -130,34 +137,46 @@ public class GalleryActivity extends BaseActivity implements
         if (data == null) {
             presenter.loadImages(imageSize);
         } else {
-            photos = (List<Bitmap>) data;
-            if (photos.size() == 0) {
+            paths = (List<String>) data;
+            if (paths.size() == 0) {
                 presenter.loadImages(imageSize);
             }
-            showImages(photos);
+            showImages(paths, imageSize);
         }
     }
 
     @Override
     public Object onRetainCustomNonConfigurationInstance() {
-        final GridView grid = gridImages;
+        final GridView grid = this.grid;
         final int count = grid.getChildCount();
         final List<Bitmap> list = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             final ImageView v = (ImageView) grid.getChildAt(i);
-            list.add(((BitmapDrawable) v.getDrawable()).getBitmap());
+            list.add(((GlideBitmapDrawable) v.getDrawable()).getBitmap());
         }
         return list;
     }
 
     @Override
-    public void showImages(List<Bitmap> bitmaps) {
-        photos = bitmaps;
-        for (Bitmap bitmap : bitmaps) {
-            imagesAdapter.addPhoto(bitmap);
-            imagesAdapter.notifyDataSetChanged();
+    public void showImages(List<String> uris, int imageSize) {
+        this.paths = uris;
+        if (uris.size() == 0){
+            grid.setVisibility(View.GONE);
+            text.setVisibility(View.VISIBLE);
+            text.setText(R.string.no_images);
+        } else {
+            text.setVisibility(View.GONE);
+            for (String path : uris) {
+                adapter.addPhoto(path);
+                adapter.notifyDataSetChanged();
+            }
         }
+    }
+
+    @Override
+    public void showProgress(boolean isShow) {
+        progress.setVisibility(isShow ? View.VISIBLE : View.GONE);
     }
 
     public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
