@@ -1,9 +1,7 @@
 package com.solution.galleryviewer.fullscreen;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
 
-import com.solution.galleryviewer.gallery.GalleryContract;
 import com.solution.galleryviewer.utils.BitmapUtils;
 
 import java.util.List;
@@ -22,15 +20,15 @@ public class FullScreenPresenter implements FullScreenContract.Presenter {
 
     @Override
     public void loadImages() {
-        List<Bitmap> bitmaps = BitmapUtils.getGalleryBitmaps((Activity)view);
-        Observable.just(bitmaps).subscribe(new Observer<List<Bitmap>>() {
+        List<String> bitmaps = BitmapUtils.getGalleryFullSize((Activity)view);
+        Observable.just(bitmaps).subscribe(new Observer<List<String>>() {
             @Override
             public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
 
             }
 
             @Override
-            public void onNext(@io.reactivex.annotations.NonNull List<Bitmap> bitmaps) {
+            public void onNext(@io.reactivex.annotations.NonNull List<String> bitmaps) {
                 view.showImages(bitmaps);
             }
 

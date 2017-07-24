@@ -14,7 +14,7 @@ public interface FullScreenContract {
 
     interface View {
 
-        void showImages(List<Bitmap> bitmaps);
+        void showImages(List<String> bitmaps);
 
     }
 

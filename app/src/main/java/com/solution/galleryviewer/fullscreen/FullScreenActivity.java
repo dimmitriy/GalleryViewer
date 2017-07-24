@@ -5,11 +5,13 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -25,13 +27,20 @@ import butterknife.ButterKnife;
 public class FullScreenActivity extends BaseActivity
         implements FullScreenContract.View, ViewPager.OnPageChangeListener {
 
+    private static final String TAG = FullScreenActivity.class.getSimpleName();
     @BindView(R.id.pager)
     ViewPager pager;
 
     private int position;
-    private List<Bitmap> photos;
+    private List<String> photos;
     private FullScreenAdapter adapter;
     private FullScreenPresenter presenter;
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(Constants.POSITION, position);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +48,11 @@ public class FullScreenActivity extends BaseActivity
         setContentView(R.layout.activity_full_screen);
         ButterKnife.bind(this);
 
-        position = getIntent().getIntExtra(Constants.POSITION, 0);
+        if (savedInstanceState == null){
+            position = getIntent().getIntExtra(Constants.POSITION, 0);
+        } else {
+            position = savedInstanceState.getInt(Constants.POSITION);
+        }
         pager.setPageTransformer(true, new ZoomOutPageTransformer());
     }
 
@@ -68,7 +81,9 @@ public class FullScreenActivity extends BaseActivity
         ImageView v;
         for (int i = 0; i < count; i++) {
             v = (ImageView) pager.getChildAt(i);
-            ( v.getDrawable()).setCallback(null);
+            if ( v.getDrawable() != null){
+                ( v.getDrawable()).setCallback(null);
+            }
         }
     }
 
@@ -125,7 +140,7 @@ public class FullScreenActivity extends BaseActivity
         if (data == null) {
             presenter.loadImages();
         } else {
-            photos = (List<Bitmap>) data;
+            photos = (List<String>) data;
             if (photos.size() == 0) {
                 presenter.loadImages();
             }
@@ -147,11 +162,12 @@ public class FullScreenActivity extends BaseActivity
     }
 
     @Override
-    public void showImages(List<Bitmap> bitmaps) {
+    public void showImages(List<String> bitmaps) {
         photos = bitmaps;
         adapter.update(bitmaps);
         adapter.notifyDataSetChanged();
         pager.setCurrentItem(position);
+        Log.d(TAG, "showImages position: " + position);
     }
 
     @Override
@@ -162,6 +178,7 @@ public class FullScreenActivity extends BaseActivity
     @Override
     public void onPageSelected(int position) {
         this.position = position;
+        Log.d(TAG, "onPageSelected position: " + position);
     }
 
     @Override
