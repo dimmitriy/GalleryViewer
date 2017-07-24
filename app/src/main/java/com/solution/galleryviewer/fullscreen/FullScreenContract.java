@@ -10,12 +10,14 @@ public interface FullScreenContract {
 
         void loadImages();
 
+        void delete(String path);
     }
 
     interface View {
 
         void showImages(List<String> bitmaps);
 
+        void updateImages(List<String> bitmaps);
     }
 
 }

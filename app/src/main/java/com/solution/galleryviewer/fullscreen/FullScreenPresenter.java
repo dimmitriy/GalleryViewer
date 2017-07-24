@@ -44,4 +44,31 @@ public class FullScreenPresenter implements FullScreenContract.Presenter {
         });
     }
 
+    @Override
+    public void delete(String path) {
+        BitmapUtils.deleteImage((Activity)view, path);
+        List<String> bitmaps = BitmapUtils.getGalleryFullSize((Activity)view);
+        Observable.just(bitmaps).subscribe(new Observer<List<String>>() {
+            @Override
+            public void onSubscribe(@io.reactivex.annotations.NonNull Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(@io.reactivex.annotations.NonNull List<String> bitmaps) {
+                view.updateImages(bitmaps);
+            }
+
+            @Override
+            public void onError(@io.reactivex.annotations.NonNull Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+    }
+
 }

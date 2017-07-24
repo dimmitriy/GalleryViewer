@@ -5,16 +5,16 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.solution.galleryviewer.BaseActivity;
 import com.solution.galleryviewer.R;
@@ -27,7 +27,6 @@ import butterknife.ButterKnife;
 public class FullScreenActivity extends BaseActivity
         implements FullScreenContract.View, ViewPager.OnPageChangeListener {
 
-    private static final String TAG = FullScreenActivity.class.getSimpleName();
     @BindView(R.id.pager)
     ViewPager pager;
 
@@ -89,10 +88,10 @@ public class FullScreenActivity extends BaseActivity
 
     void checkPermission() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         Constants.CODE_SELECT_FROM_GALLERY);
             }
         } else {
@@ -115,12 +114,19 @@ public class FullScreenActivity extends BaseActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        return super.onCreateOptionsMenu(menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.fullscreen, menu);
+        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
+            case R.id.delete:
+                String path = photos.get(position);
+                Toast.makeText(this, String.format(getString(R.string.image_deleted), path), Toast.LENGTH_SHORT).show();
+                presenter.delete(path);
+                return true;
             case android.R.id.home:
                 onBackPressed();
                 return true;
@@ -167,7 +173,17 @@ public class FullScreenActivity extends BaseActivity
         adapter.update(bitmaps);
         adapter.notifyDataSetChanged();
         pager.setCurrentItem(position);
-        Log.d(TAG, "showImages position: " + position);
+    }
+
+    @Override
+    public void updateImages(List<String> bitmaps) {
+        photos = bitmaps;
+        pager.setAdapter(null);
+        adapter.update(bitmaps);
+        adapter.notifyDataSetChanged();
+        pager.setAdapter(adapter);
+        pager.invalidate();
+        pager.setCurrentItem(position);
     }
 
     @Override
@@ -178,7 +194,6 @@ public class FullScreenActivity extends BaseActivity
     @Override
     public void onPageSelected(int position) {
         this.position = position;
-        Log.d(TAG, "onPageSelected position: " + position);
     }
 
     @Override

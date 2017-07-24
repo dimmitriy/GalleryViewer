@@ -3,4 +3,5 @@
     <string name="gallery_viewer">Gallery Viewer</string>
     <string name="fullscreen_viewer">FullScreen Viewer</string>
     <string name="delete">delete</string>
+    <string name="image_deleted">image %s deleted</string>
 </resources>
