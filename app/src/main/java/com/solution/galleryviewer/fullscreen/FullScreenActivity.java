@@ -3,7 +3,6 @@ package com.solution.galleryviewer.fullscreen;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -16,7 +15,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.solution.galleryviewer.BaseActivity;
 import com.solution.galleryviewer.R;
 import com.solution.galleryviewer.extras.Constants;
@@ -56,7 +54,10 @@ public class FullScreenActivity extends BaseActivity
         } else {
             position = savedInstanceState.getInt(Constants.POSITION);
         }
-        pager.setPageTransformer(true, new ZoomOutPageTransformer());
+
+        presenter = new FullScreenPresenter(this);
+        setupViews();
+        checkPermission();
     }
 
     @Override
@@ -67,14 +68,6 @@ public class FullScreenActivity extends BaseActivity
     @Override
     protected boolean isHasBackButton() {
         return true;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        presenter = new FullScreenPresenter(this);
-        setupViews();
-        checkPermission();
     }
 
     protected void onDestroy() {
@@ -93,11 +86,9 @@ public class FullScreenActivity extends BaseActivity
     void checkPermission() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         Constants.CODE_SELECT_FROM_GALLERY);
-            }
         } else {
             loadImages();
         }
@@ -143,7 +134,8 @@ public class FullScreenActivity extends BaseActivity
                     } else {
                         path = paths.get(position);
                     }
-                    Toast.makeText(this, String.format(getString(R.string.image_deleted), path), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, String.format(getString(R.string.image_deleted), path),
+                            Toast.LENGTH_SHORT).show();
                     presenter.delete(path);
                 }
                 return true;
@@ -156,6 +148,7 @@ public class FullScreenActivity extends BaseActivity
     }
 
     private void setupViews() {
+        pager.setPageTransformer(true, new ZoomOutPageTransformer());
         adapter = new FullScreenAdapter(this);
         pager.setAdapter(adapter);
         pager.setOnPageChangeListener(this);
@@ -189,7 +182,6 @@ public class FullScreenActivity extends BaseActivity
 
     @Override
     public void showImages(List<String> paths) {
-
         if (paths.size() == 0){
             onBackPressed();
         } else {

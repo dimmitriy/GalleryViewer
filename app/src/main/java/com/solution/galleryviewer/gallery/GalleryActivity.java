@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -19,7 +18,6 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
 import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 import com.solution.galleryviewer.BaseActivity;
 import com.solution.galleryviewer.R;
@@ -27,7 +25,6 @@ import com.solution.galleryviewer.extras.Constants;
 import com.solution.galleryviewer.fullscreen.FullScreenActivity;
 import java.util.ArrayList;
 import java.util.List;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -53,6 +50,18 @@ public class GalleryActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+
+        progress.setVisibility(View.GONE);
+        presenter = new GalleryPresenter(this);
+        Display display = ((WindowManager)
+                getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            imageSize = display.getWidth() / Constants.COUNT_IMAGES_LANDSCAPE;
+        } else {
+            imageSize = display.getWidth() / Constants.COUNT_IMAGES_PORTRAIT;
+        }
+        setupViews();
+        checkPermission();
     }
 
     @Override
@@ -65,20 +74,6 @@ public class GalleryActivity extends BaseActivity implements
         return false;
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        presenter = new GalleryPresenter(this);
-        Display display = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            imageSize =  display.getWidth()/Constants.COUNT_IMAGES_LANDSCAPE;
-        } else {
-            imageSize =  display.getWidth()/Constants.COUNT_IMAGES_PORTRAIT;
-        }
-        setupViews();
-        checkPermission();
-    }
-
     protected void onDestroy() {
         super.onDestroy();
         final GridView grid = this.grid;
@@ -86,18 +81,16 @@ public class GalleryActivity extends BaseActivity implements
         ImageView v;
         for (int i = 0; i < count; i++) {
             v = (ImageView) grid.getChildAt(i);
-            ( v.getDrawable()).setCallback(null);
+            (v.getDrawable()).setCallback(null);
         }
     }
 
     void checkPermission() {
-        if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        Constants.CODE_SELECT_FROM_GALLERY);
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    Constants.CODE_SELECT_FROM_GALLERY);
         } else {
             loadImages();
         }
@@ -109,7 +102,8 @@ public class GalleryActivity extends BaseActivity implements
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case Constants.CODE_SELECT_FROM_GALLERY:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     loadImages();
                 } else {
                     grid.setVisibility(View.GONE);
@@ -121,7 +115,7 @@ public class GalleryActivity extends BaseActivity implements
     }
 
     private void setupViews() {
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             grid.setNumColumns(Constants.COUNT_IMAGES_LANDSCAPE);
         } else {
             grid.setNumColumns(Constants.COUNT_IMAGES_PORTRAIT);
@@ -161,7 +155,7 @@ public class GalleryActivity extends BaseActivity implements
     @Override
     public void showImages(List<String> uris, int imageSize) {
         this.paths = uris;
-        if (uris.size() == 0){
+        if (uris.size() == 0) {
             grid.setVisibility(View.GONE);
             text.setVisibility(View.VISIBLE);
             text.setText(R.string.no_images);
